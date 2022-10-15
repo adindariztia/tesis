@@ -1,69 +1,45 @@
+# set async_mode to 'threading', 'eventlet', 'gevent' or 'gevent_uwsgi' to
+# force a mode else, the best mode is selected automatically from what's
+# installed
+async_mode = None
+
 from flask import Flask, render_template
 import socketio
 
-async_mode = None
-sio = socketio.Server(logger = True, async_mode = async_mode)
+sio = socketio.Server(async_mode=async_mode)
 app = Flask(__name__)
 app.wsgi_app = socketio.WSGIApp(sio, app.wsgi_app)
-thread = None
 
-data_dari_client = 0
 
-#nanti ngejalanin predictionnya disini nih
-def background_thread():
-    count = 0
-    while True:
-        sio.sleep(2)
-        count+= 1
-
-        broadcast_to_all = "server_generated_event"
-        global data_dari_client
-
-        if data_dari_client != 0:
-            broadcast_to_all = data_dari_client
-            data_dari_client = 0
-        sio.emit("my_response", {"data": broadcast_to_all})
-        
 @app.route('/')
 def index():
-    global thread
-    if thread is None:
-        thread = sio.start_background_task(background_thread)
-    return render_template('index.html')
+    return render_template('latency.html')
+
 
 @sio.event
-def connect(sid, environ):
-    sio.emit("my_response", {'data': 'connected', 'count': 0})
-    
-@sio.event
-def disconnect(sid):
-    print("disconnected", sid)
-    disc = "sid: " + str(sid)
-    sio.emit("disconnect_broadcast", {'data': disc})
-
-@sio.event
-def coba(sid, data):
-    print("DINDDDD LIAT ", sid, data)
-    sio.emit("response_coba", {'data': 'hae juga'})
+def ping_from_client(sid):
+    sio.emit('pong_from_server', room=sid)
 
 @sio.event
 def cobadariclient(sid, data):
     print('DAPET DATA DARI CLIENT NIHH ', data)
-    global data_dari_client
-    data_dari_client = data['data']
     sio.emit('coba_dari_server', {'data': 'DARI SERVER NIHHH'}, to=sid)
 
 
 if __name__ == '__main__':
     if sio.async_mode == 'threading':
+        print("SATU YAAAA")
+
         # deploy with Werkzeug
-        app.run(host='0.0.0.0',threaded=True)
+        app.run(threaded=True)
     elif sio.async_mode == 'eventlet':
+        print("DUA YAAAA")
         # deploy with eventlet
         import eventlet
         import eventlet.wsgi
         eventlet.wsgi.server(eventlet.listen(('', 5000)), app)
     elif sio.async_mode == 'gevent':
+        print("TIGA YAAAa")
         # deploy with gevent
         from gevent import pywsgi
         try:
@@ -77,8 +53,9 @@ if __name__ == '__main__':
         else:
             pywsgi.WSGIServer(('', 5000), app).serve_forever()
     elif sio.async_mode == 'gevent_uwsgi':
+        print("EMPAT YAAAAA")
         print('Start the application through the uwsgi server. Example:')
         print('uwsgi --http :5000 --gevent 1000 --http-websockets --master '
-              '--wsgi-file app.py --callable app')
+              '--wsgi-file latency.py --callable app')
     else:
         print('Unknown async_mode: ' + sio.async_mode)

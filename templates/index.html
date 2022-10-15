@@ -24,47 +24,50 @@
             socket.emit('coba', {'data': 'hae'})
 
             socket.on('response_coba', function(msg) {
-                console.log(msg)
+                $('#log').append('<br>Response Coba: ' + msg.data);
             })
 
+            // KODE DI BAWAH INI GAK KEPAKE YA
+            // MAKA DARIPADA ITU SAYA COMMENT SAJA
+            // MOHON HARAP MAKLUM
             // event handler for server sent data
             // the data is displayed in the "Received" section of the page
             // handlers for the different forms in the page
             // these send data to the server in a variety of ways
-            $('form#emit').submit(function(event) {
-                socket.emit('my_event', {data: $('#emit_data').val()});
-                return false;
-            });
-            $('form#broadcast').submit(function(event) {
-                socket.emit('my_broadcast_event', {data: $('#broadcast_data').val()});
-                return false;
-            });
-            $('form#join').submit(function(event) {
-                socket.emit('join', {room: $('#join_room').val()});
-                return false;
-            });
-            $('form#leave').submit(function(event) {
-                socket.emit('leave', {room: $('#leave_room').val()});
-                return false;
-            });
-            $('form#send_room').submit(function(event) {
-                socket.emit('my_room_event', {room: $('#room_name').val(), data: $('#room_data').val()});
-                return false;
-            });
-            $('form#close').submit(function(event) {
-                socket.emit('close_room', {room: $('#close_room').val()});
-                return false;
-            });
-            $('form#disconnect').submit(function(event) {
-                socket.emit('disconnect_request');
-                return false;
-            });
+            // $('form#emit').submit(function(event) {
+            //     socket.emit('my_event', {data: $('#emit_data').val()});
+            //     return false;
+            // });
+            // $('form#broadcast').submit(function(event) {
+            //     socket.emit('my_broadcast_event', {data: $('#broadcast_data').val()});
+            //     return false;
+            // });
+            // $('form#join').submit(function(event) {
+            //     socket.emit('join', {room: $('#join_room').val()});
+            //     return false;
+            // });
+            // $('form#leave').submit(function(event) {
+            //     socket.emit('leave', {room: $('#leave_room').val()});
+            //     return false;
+            // });
+            // $('form#send_room').submit(function(event) {
+            //     socket.emit('my_room_event', {room: $('#room_name').val(), data: $('#room_data').val()});
+            //     return false;
+            // });
+            // $('form#close').submit(function(event) {
+            //     socket.emit('close_room', {room: $('#close_room').val()});
+            //     return false;
+            // });
+            // $('form#disconnect').submit(function(event) {
+            //     socket.emit('disconnect_request');
+            //     return false;
+            // });
         });
     </script>
 </head>
 <body>
-    <h1>Flask-SocketIO Test</h1>
-    <h2>Send:</h2>
+    <h1>Digital Twin Monitoring System using Flask-SocketIO Test</h1>
+    <h2>Web Client for Virtual Sensor</h2>
     <form id="emit" method="POST" action='#'>
         <input type="text" name="emit_data" id="emit_data" placeholder="Message">
         <input type="submit" value="Echo">

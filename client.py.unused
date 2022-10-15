@@ -1,0 +1,22 @@
+import socketio
+
+
+sio = socketio.Client(logger=True, engineio_logger= True)
+
+def send_ping():
+    sio.emit('ping_from_client', {'data': 'PING NIHHH'})
+
+@sio.event
+def connect():
+    print('connected to the server')
+    send_ping()
+
+@sio.event
+def pong_from_server(data):
+    print('DAPET PONG DARI SERVER ', data)
+    if sio.connected:
+        send_ping()
+
+if __name__ == '__main__':
+    sio.connect('http://localhost:5000')
+    sio.wait()
