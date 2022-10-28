@@ -1,5 +1,6 @@
 from flask import Flask, render_template
 import socketio
+from random import randint, random
 
 async_mode = None
 sio = socketio.Server(logger = True, async_mode = async_mode)
@@ -13,10 +14,11 @@ data_dari_client = 0
 def background_thread():
     count = 0
     while True:
-        sio.sleep(2)
+        sio.sleep(1)
         count+= 1
 
-        broadcast_to_all = "server_generated_event"
+        temp = randint(1,100)
+        broadcast_to_all = temp #"server_generated_event"
         global data_dari_client
 
         if data_dari_client != 0:
