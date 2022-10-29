@@ -20,15 +20,17 @@ def background_thread():
         count+= 1
 
         temp = randint(1,100)
-        broadcast_temp = temp #GANTI PAKE DATA HASIL PRED
-        broadcast_humid = temp #GANTI PAKE DATA HASIL PRED
+       
         
         global client_temp
         global client_humid
 
-        if (client_temp != 0 and client_humid):
+        if (client_temp != 0 and client_humid!= 0):
             broadcast_temp, broadcast_humid = client_temp, client_humid
             client_temp, client_humid = 0, 0
+        else:
+            broadcast_temp = temp #GANTI PAKE DATA HASIL PRED
+            broadcast_humid = temp #GANTI PAKE DATA HASIL PRED
             
         sio.emit("my_response", {"data_temp": broadcast_temp, "data_humid": broadcast_humid})
         

@@ -22,11 +22,11 @@ start_timer = None
 
 def background_thread():
     while True:
-        b = random.randrange(10)
+        b = 6 #random.randrange(10)
         if b > 5:
             print(b)
             send_sensorData()
-            sio.sleep(5)
+            sio.sleep(1)
 
 
 @sio.event
