@@ -57,11 +57,13 @@ def send_sensorData():
         raise error
     time.sleep(1.0)
     
-    sio.emit('cobadariclient', {'data_temp': sensor_temp, 'data_humid': sensor_humidity})
+    sio.emit('client_sensor_data', {'data_temp': sensor_temp, 'data_humid': sensor_humidity})
 
 @sio.event
-def coba_dari_server(data):
-    print(data)
+def server_respond(data):
+    if data == 0:
+        sio.emit('client_sensor_data', {'data_temp': sensor_temp, 'data_humid': sensor_humidity})
+        
 
 
 if __name__ == '__main__':

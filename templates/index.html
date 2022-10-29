@@ -20,8 +20,8 @@
                 $('#log').append('<br>Disconnected');
             });
             socket.on('my_response', function(msg) {
-                $('#log').append('<br>Received: ' + msg.data);
-                serverData = msg.data
+                $('#log').append('<br>Received: ' + msg.data_temp);
+                serverData = msg.data_temp
             });
             socket.on('disconnect_broadcast', function(msg) {
                 $('#log').append('<br>Disconnected Broadcast: ' + msg.data);

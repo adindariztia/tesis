@@ -1,6 +1,7 @@
 from flask import Flask, render_template
 import socketio
 from random import randint, random
+import math
 
 async_mode = None
 sio = socketio.Server(logger = True, async_mode = async_mode)
@@ -8,7 +9,8 @@ app = Flask(__name__)
 app.wsgi_app = socketio.WSGIApp(sio, app.wsgi_app)
 thread = None
 
-data_dari_client = 0
+client_temp = 0
+client_humid = 0
 
 #nanti ngejalanin predictionnya disini nih
 def background_thread():
@@ -18,13 +20,17 @@ def background_thread():
         count+= 1
 
         temp = randint(1,100)
-        broadcast_to_all = temp #"server_generated_event"
-        global data_dari_client
+        broadcast_temp = temp #GANTI PAKE DATA HASIL PRED
+        broadcast_humid = temp #GANTI PAKE DATA HASIL PRED
+        
+        global client_temp
+        global client_humid
 
-        if data_dari_client != 0:
-            broadcast_to_all = data_dari_client
-            data_dari_client = 0
-        sio.emit("my_response", {"data": broadcast_to_all})
+        if (client_temp != 0 and client_humid):
+            broadcast_temp, broadcast_humid = client_temp, client_humid
+            client_temp, client_humid = 0, 0
+            
+        sio.emit("my_response", {"data_temp": broadcast_temp, "data_humid": broadcast_humid})
         
 @app.route('/')
 def index():
@@ -49,11 +55,18 @@ def coba(sid, data):
     sio.emit("response_coba", {'data': 'hae juga'})
 
 @sio.event
-def cobadariclient(sid, data):
+def client_sensor_data(sid, data):
     print('DAPET DATA DARI CLIENT NIHH ', data)
-    global data_dari_client
-    data_dari_client = data['data']
-    sio.emit('coba_dari_server', {'data': 'DARI SERVER NIHHH'}, to=sid)
+    global client_temp
+    global client_humid
+    client_temp = data['data_temp']
+    client_humid = data['data_humid']
+    
+    server_res = 0
+    
+    if (not math.isnan(client_temp) and not math.isnan(client_humid)):
+        server_res = 1
+    sio.emit('server_respond', {'data': server_res}, to=sid)
 
 
 if __name__ == '__main__':
