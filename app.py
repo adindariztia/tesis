@@ -2,6 +2,8 @@ from flask import Flask, render_template
 import socketio
 from random import randint, random
 import math
+import numpy as np
+import tensorflow as tf
 
 async_mode = None
 sio = socketio.Server(logger = True, async_mode = async_mode)
@@ -12,6 +14,39 @@ thread = None
 client_temp = 0
 client_humid = 0
 
+interpreter = tf.lite.Interpreter(model_path="ModelMLP2.tflite")
+interpreter.allocate_tensors()
+
+input_details = interpreter.get_input_details()
+output_details = interpreter.get_output_details()
+
+inputSensorData = [[22,  16.9, 22,  16.9]]
+
+input_shape = input_details[0]['shape']
+
+def predict_data(inputSensorData):
+    input_data = np.array(inputSensorData, dtype=np.float32)
+    interpreter.set_tensor(input_details[0]['index'], input_data)
+
+    output_data = interpreter.get_tensor(output_details[0]['index'])
+    
+    return output_data
+
+def preprocess_prediction():
+    global inputSensorData
+                 
+    outputPred = predict_data(inputSensorData)
+            
+    resTemp = outputPred[0][0]
+    resHumid = outputPred[0][1]
+            
+    if (resTemp < 1 or resHumid < 1):
+        resTemp, resHumid = randint(19,22), randint(15,19)
+        
+    print(resTemp, resHumid)
+        
+    return resTemp, resHumid
+
 #nanti ngejalanin predictionnya disini nih
 def background_thread():
     count = 0
@@ -19,18 +54,26 @@ def background_thread():
         sio.sleep(1)
         count+= 1
 
-        temp = randint(1,100)
+        # temp = randint(1,100)
        
         
         global client_temp
-        global client_humid
+        global client_humid      
 
         if (client_temp != 0 and client_humid!= 0):
+            
             broadcast_temp, broadcast_humid = client_temp, client_humid
+            inputSensorData = inputSensorData.pop(0)
+            inputSensorData = inputSensorData.pop(0)
+            
+            inputSensorData = inputSensorData.append(client_temp)
+            inputSensorData = inputSensorData.append(client_humid)
+            
             client_temp, client_humid = 0, 0
         else:
-            broadcast_temp = temp #GANTI PAKE DATA HASIL PRED
-            broadcast_humid = temp #GANTI PAKE DATA HASIL PRED
+            resTemp, resHumid = preprocess_prediction()
+            broadcast_temp = resTemp #GANTI PAKE DATA HASIL PRED
+            broadcast_humid = resHumid #GANTI PAKE DATA HASIL PRED
             
         sio.emit("my_response", {"data_temp": broadcast_temp, "data_humid": broadcast_humid})
         
