@@ -25,8 +25,8 @@ def background_thread():
     global req_data
     
     while True:
-        # b = 6 #random.randrange(10)
-        if req_data == 1:
+        b = random.randrange(10)
+        if b > 5:
             # print(b)
             send_sensorData()
             sio.sleep(1)
