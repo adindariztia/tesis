@@ -1,4 +1,3 @@
-from http import server
 import time
 import socketio
 import random

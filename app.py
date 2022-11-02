@@ -96,7 +96,7 @@ def preparenextpred(temp, humid):
         sensorDataRequest()
 
 @sio.event
-def sensorDataRequest(sid, data):
+def sensorDataRequest():
     global client_temp
     sio.emit("data_request", {"data": 1})
     
