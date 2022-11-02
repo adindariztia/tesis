@@ -13,6 +13,7 @@ thread = None
 
 client_temp = 0
 client_humid = 0
+data_counter = 0
 
 interpreter = tf.lite.Interpreter(model_path="ModelMLP2.tflite")
 interpreter.allocate_tensors()
@@ -27,7 +28,8 @@ input_shape = input_details[0]['shape']
 def predict_data(inputSensorData):
     input_data = np.array(inputSensorData, dtype=np.float32)
     interpreter.set_tensor(input_details[0]['index'], input_data)
-
+    interpreter.invoke()
+    
     output_data = interpreter.get_tensor(output_details[0]['index'])
     
     return output_data
@@ -55,27 +57,50 @@ def background_thread():
         count+= 1
 
         # temp = randint(1,100)
-       
-        
         global client_temp
         global client_humid      
 
         if (client_temp != 0 and client_humid!= 0):
             
             broadcast_temp, broadcast_humid = client_temp, client_humid
-            inputSensorData = inputSensorData.pop(0)
-            inputSensorData = inputSensorData.pop(0)
             
-            inputSensorData = inputSensorData.append(client_temp)
-            inputSensorData = inputSensorData.append(client_humid)
             
             client_temp, client_humid = 0, 0
+            broadcastResult(broadcast_temp, broadcast_humid)
         else:
             resTemp, resHumid = preprocess_prediction()
-            broadcast_temp = resTemp #GANTI PAKE DATA HASIL PRED
-            broadcast_humid = resHumid #GANTI PAKE DATA HASIL PRED
+            broadcast_temp = round(resTemp) #GANTI PAKE DATA HASIL PRED
+            broadcast_humid = round(resHumid) #GANTI PAKE DATA HASIL PRED
             
-        sio.emit("my_response", {"data_temp": broadcast_temp, "data_humid": broadcast_humid})
+            broadcastResult(broadcast_temp, broadcast_humid)
+            
+    
+def broadcastResult(temp, humid):
+    if (temp != 0 and humid != 0):
+        sio.emit("my_response", {"data_temp": int(temp), "data_humid": int(humid)})
+        preparenextpred(temp, humid)
+        
+
+def preparenextpred(temp, humid):
+    global inputSensorData
+    global data_counter
+    
+
+    del inputSensorData[0][0]
+    inputSensorData[0].append(temp)
+    del inputSensorData[0][0]
+    inputSensorData[0].append(humid)
+    data_counter +=1
+    
+    if data_counter >= 2:
+        sensorDataRequest()
+
+@sio.event
+def sensorDataRequest(sid, data):
+    global client_temp
+    sio.emit("data_request", {"data": 1})
+    
+      
         
 @app.route('/')
 def index():

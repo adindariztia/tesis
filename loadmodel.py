@@ -16,6 +16,8 @@ input_shape = input_details[0]['shape']
 input_data = np.array(sensor_data, dtype=np.float32)
 interpreter.set_tensor(input_details[0]['index'], input_data)
 
+interpreter.invoke()
+
 output_data = interpreter.get_tensor(output_details[0]['index'])
 print(output_data)
 

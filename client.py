@@ -1,3 +1,4 @@
+from http import server
 import time
 import socketio
 import random
@@ -8,6 +9,7 @@ import psutil
 
 sensor_temp = 0
 sensor_humidity = 0
+req_data = 0
 
 #for proc in psutil.process_iter():
     #print(proc)
@@ -21,10 +23,12 @@ sio = socketio.Client(logger=False, engineio_logger=False)
 start_timer = None
 
 def background_thread():
+    global req_data
+    
     while True:
-        b = 6 #random.randrange(10)
-        if b > 5:
-            print(b)
+        # b = 6 #random.randrange(10)
+        if req_data == 1:
+            # print(b)
             send_sensorData()
             sio.sleep(1)
 
@@ -58,11 +62,21 @@ def send_sensorData():
     time.sleep(1.0)
     
     sio.emit('client_sensor_data', {'data_temp': sensor_temp, 'data_humid': sensor_humidity})
+    
+@sio.event
+def data_request(data):
+    global req_data
+    
+    req_data = data
 
 @sio.event
 def server_respond(data):
+    global req_data
+    
     if data == 0:
         sio.emit('client_sensor_data', {'data_temp': sensor_temp, 'data_humid': sensor_humidity})
+    else:
+        req_data = 0
         
 
 
